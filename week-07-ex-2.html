@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Motor Performance Lab</title>
+<style>
+  body { margin:0; overflow:hidden; background:#0b1f2a; color:white; font-family:sans-serif; }
+  #score { position:fixed; top:10px; left:10px; }
+  .target, .ghost {
+    position:absolute;
+    border-radius:50%;
+  }
+  .target { background:#00ffcc; }
+  .ghost { background:rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+<div id="score">Hits: 0 | Misses: 0</div>
+
+<script>
+const WIDTH = window.innerWidth;
+const HEIGHT = window.innerHeight;
+
+let hits = 0;
+let misses = 0;
+let target;
+let ghosts = [];
+
+function createTarget() {
+  if (target) target.remove();
+
+  target = document.createElement('div');
+  target.className = 'target';
+  target.style.width = '40px';
+  target.style.height = '40px';
+
+  positionElement(target);
+  document.body.appendChild(target);
+
+  // shaking effect
+  setInterval(() => {
+    target.style.transform = `translate(${Math.random()*6-3}px, ${Math.random()*6-3}px)`;
+  }, 50);
+
+  target.onclick = () => {
+    hits++;
+    updateScore();
+    createTarget();
+  };
+}
+
+function createGhost() {
+  const ghost = document.createElement('div');
+  ghost.className = 'ghost';
+  ghost.style.width = '40px';
+  ghost.style.height = '40px';
+
+  positionElement(ghost);
+  document.body.appendChild(ghost);
+
+  ghosts.push({ el: ghost, dx: Math.random()*4-2, dy: Math.random()*4-2 });
+
+  ghost.onclick = () => {
+    misses++;
+    updateScore();
+  };
+}
+
+function positionElement(el) {
+  el.style.left = Math.random() * (WIDTH - 40) + 'px';
+  el.style.top = Math.random() * (HEIGHT - 40) + 'px';
+}
+
+function moveGhosts() {
+  ghosts.forEach(g => {
+    let rect = g.el.getBoundingClientRect();
+    let x = rect.left + g.dx;
+    let y = rect.top + g.dy;
+
+    if (x < 0 || x > WIDTH-40) g.dx *= -1;
+    if (y < 0 || y > HEIGHT-40) g.dy *= -1;
+
+    g.el.style.left = x + 'px';
+    g.el.style.top = y + 'px';
+  });
+}
+
+function updateScore() {
+  document.getElementById('score').innerText = `Hits: ${hits} | Misses: ${misses}`;
+}
+
+function init() {
+  createTarget();
+  for (let i = 0; i < 5; i++) createGhost();
+  setInterval(moveGhosts, 30);
+}
+
+init();
+</script>
+</body>
+</html>
