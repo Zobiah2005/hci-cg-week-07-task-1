@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HCI Lab – Week 07 | Reaction Time Test</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 30px 16px;
+    }
+
+    #lab-root {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 30px 24px;
+      width: 100%;
+      max-width: 660px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    #stimulus-box {
+      width: 100%;
+      height: 220px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 140px;
+      font-weight: 700;
+      color: #1a1a1a;
+      user-select: none;
+      margin-bottom: 20px;
+      transition: background 0.15s ease;
+    }
+
+    #stimulus-box.correct-flash {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+
+    #stimulus-box.wrong-flash {
+      background: #f8d7da;
+      border-color: #dc3545;
+    }
+
+    #stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    #msg {
+      font-size: 14px;
+      color: #555;
+      text-align: center;
+      min-height: 20px;
+      margin-bottom: 14px;
+    }
+
+    #btn-row {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .resp-btn {
+      flex: 1;
+      padding: 11px 0;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1.5px solid #ccc;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+    }
+
+    .resp-btn:hover {
+      background: #f0f0f0;
+    }
+
+    .resp-btn:active {
+      transform: scale(0.97);
+    }
+
+    #btn-start {
+      background: #e8f0fe;
+      color: #1a56db;
+      border-color: #a4c2f4;
+    }
+
+    #btn-start:hover {
+      background: #d2e3fc;
+    }
+
+    #log-section h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 8px;
+    }
+
+    #log-wrap {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+
+    #trial-log {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    #trial-log th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      color: #888;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 8px 10px;
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+    }
+
+    #trial-log td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #1a1a1a;
+    }
+
+    #trial-log tr:last-child td {
+      border-bottom: none;
+    }
+
+    .correct-row td {
+      color: #1a7f37;
+    }
+
+    .wrong-row td {
+      color: #c0392b;
+    }
+
+    #instructions {
+      margin-top: 20px;
+      padding: 12px 16px;
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #5a4000;
+      line-height: 1.7;
+    }
+
+    #instructions strong {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div id="lab-root">
+
+  <h1>HCI Lab – Week 07</h1>
+  <p class="subtitle">Reaction Time Test &nbsp;|&nbsp; Keyboard Response</p>
+
+  <div id="stimulus-box">
+    <span id="stimulus-char">?</span>
+  </div>
+
+  <div id="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Trial</div>
+      <div class="stat-value" id="s-trial">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Correct</div>
+      <div class="stat-value" id="s-correct">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value" id="s-acc">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Time</div>
+      <div class="stat-value" id="s-avg">—</div>
+    </div>
+  </div>
+
+  <div id="msg">Press <strong>Space</strong> or the button below to start</div>
+
+  <div id="btn-row">
+    <button class="resp-btn" id="btn-a">Letter (A)</button>
+    <button class="resp-btn" id="btn-start">Start / Restart (Space)</button>
+    <button class="resp-btn" id="btn-l">Number (L)</button>
+  </div>
+
+  <div id="log-section">
+    <h2>Trial Log</h2>
+    <div id="log-wrap">
+      <table id="trial-log">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Stimulus</th>
+            <th>Type</th>
+            <th>Response</th>
+            <th>Correct?</th>
+            <th>Time (ms)</th>
+          </tr>
+        </thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="instructions">
+    <strong>How to use:</strong><br>
+    1. Press <strong>Space</strong> or <strong>Start</strong> to begin.<br>
+    2. A letter or number will appear on screen.<br>
+    3. Press <strong>A</strong> if it is a <strong>letter</strong>. Press <strong>L</strong> if it is a <strong>number</strong>.<br>
+    4. React as fast as you can! Your average reaction time is tracked above.
+  </div>
+
+</div>
+
+<script>
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const NUMBERS = '0123456789'.split('');
+
+  let state = 'idle';
+  let currentChar = '';
+  let currentType = '';
+  let stimulusTime = 0;
+  let trials = [];
+
+  const stimBox  = document.getElementById('stimulus-box');
+  const stimChar = document.getElementById('stimulus-char');
+  const msg      = document.getElementById('msg');
+  const logBody  = document.getElementById('log-body');
+
+  const sTrial   = document.getElementById('s-trial');
+  const sCorrect = document.getElementById('s-correct');
+  const sAcc     = document.getElementById('s-acc');
+  const sAvg     = document.getElementById('s-avg');
+
+  function randomChar() {
+    const isLetter = Math.random() < 0.5;
+    const pool = isLetter ? LETTERS : NUMBERS;
+    const char = pool[Math.floor(Math.random() * pool.length)];
+    return { char, type: isLetter ? 'letter' : 'number' };
+  }
+
+  function showStimulus() {
+    const { char, type } = randomChar();
+    currentChar = char;
+    currentType = type;
+    stimChar.textContent = char;
+    stimulusTime = performance.now();
+    state = 'waiting';
+    msg.textContent = 'Press A (letter) or L (number)';
+  }
+
+  function startOver() {
+    trials = [];
+    state = 'idle';
+    stimChar.textContent = '?';
+    logBody.innerHTML = '';
+    updateStats();
+    msg.textContent = 'Starting… get ready!';
+    setTimeout(showStimulus, 600 + Math.random() * 600);
+  }
+
+  function handleResponse(response) {
+    if (state !== 'waiting') return;
+
+    const reactionTime = Math.round(performance.now() - stimulusTime);
+
+    const correct =
+      (response === 'A' && currentType === 'letter') ||
+      (response === 'L' && currentType === 'number');
+
+    trials.push({ char: currentChar, type: currentType, response, correct, reactionTime });
+
+    stimBox.classList.add(correct ? 'correct-flash' : 'wrong-flash');
+    setTimeout(() => stimBox.classList.remove('correct-flash', 'wrong-flash'), 300);
+
+    addLogRow(trials.length, currentChar, currentType, response, correct, reactionTime);
+    updateStats();
+
+    msg.textContent = correct ? '✓ Correct!' : '✗ Wrong!';
+    state = 'between';
+    setTimeout(showStimulus, 700 + Math.random() * 500);
+  }
+
+  function addLogRow(n, char, type, resp, correct, time) {
+    const tr = document.createElement('tr');
+    tr.className = correct ? 'correct-row' : 'wrong-row';
+    tr.innerHTML = `
+      <td>${n}</td>
+      <td style="font-weight:600; font-size:16px;">${char}</td>
+      <td>${type}</td>
+      <td>${resp}</td>
+      <td>${correct ? 'Yes ✓' : 'No ✗'}</td>
+      <td>${time} ms</td>
+    `;
+    logBody.prepend(tr);
+  }
+
+  function updateStats() {
+    const total        = trials.length;
+    const correctCount = trials.filter(t => t.correct).length;
+    const correctTimes = trials.filter(t => t.correct).map(t => t.reactionTime);
+
+    const avg = correctTimes.length
+      ? Math.round(correctTimes.reduce((a, b) => a + b, 0) / correctTimes.length)
+      : null;
+
+    sTrial.textContent   = total;
+    sCorrect.textContent = correctCount;
+    sAcc.textContent     = total ? Math.round((correctCount / total) * 100) + '%' : '—';
+    sAvg.textContent     = avg !== null ? avg + 'ms' : '—';
+  }
+
+  document.getElementById('btn-a').addEventListener('click', () => handleResponse('A'));
+  document.getElementById('btn-l').addEventListener('click', () => handleResponse('L'));
+  document.getElementById('btn-start').addEventListener('click', startOver);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      startOver();
+    }
+    if (e.key === 'a' || e.key === 'A') handleResponse('A');
+    if (e.key === 'l' || e.key === 'L') handleResponse('L');
+  });
+</script>
+
+</body>
+</html>
